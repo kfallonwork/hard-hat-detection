@@ -1,0 +1,9 @@
+azure.cognitiveservices.vision.customvision.prediction
+msrest.authentication
+matplotlib
+PIL
+numpy
+os
+streamlit
+dotenv
+io
