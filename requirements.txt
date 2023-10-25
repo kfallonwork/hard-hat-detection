@@ -3,7 +3,6 @@ msrest
 matplotlib
 pillow
 numpy
-os
 streamlit
-dotenv
-io
+python-dotenv
+
