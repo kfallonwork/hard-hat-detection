@@ -1,5 +1,5 @@
-azure.cognitiveservices.vision.customvision.prediction
-msrest.authentication
+azure-cognitiveservices-vision-customvision-prediction
+msrest-authentication
 matplotlib
 PIL
 numpy
