@@ -72,7 +72,7 @@ class PerformOD:
         self.stopped = False
 
     def start(self):
-        Thread(target=self.eodF, args=()).start()
+        Thread(target=self.od, args=()).start()
         return self
 
     def set_exchange(self, video_stream):
