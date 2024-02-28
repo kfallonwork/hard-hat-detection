@@ -43,7 +43,7 @@ class TFObjectDetection(ObjectDetection):
         print("entering prediction loop")
         converted_list = []
         for prediction in results:
-            if (prediction["probability"]*100) > 25:
+            if (prediction["probability"]*100) > 50:
                 left = prediction["boundingBox"]["left"] * w
                 top = prediction["boundingBox"]["top"]  * h
                 height = prediction["boundingBox"]["height"] *h
@@ -61,6 +61,7 @@ class PerformOD:
     # def __init__(self, exchange: VideoStream, language=None):
     def __init__(self):
         self.graph_def = tf.compat.v1.GraphDef()
+        self.annotations = []
         with tf.io.gfile.GFile(MODEL_FILENAME, 'rb') as f:
             self.graph_def.ParseFromString(f.read())
 
@@ -70,6 +71,7 @@ class PerformOD:
         self.od_model = TFObjectDetection(self.graph_def, labels)
         self.exchange = None
         self.stopped = False
+        
 
     def start(self):
         Thread(target=self.od, args=()).start()
@@ -88,11 +90,22 @@ class PerformOD:
                 img = Image.fromarray(frame2, 'RGB')
                 results = self.od_model.predict_image(img)
                 annotated_image = self.od_model.draw_results(results, frame)
-                for answer in annotated_image:
-                    
-                    cv2.rectangle(frame, answer[0], answer[1], (0, 0, 0), 1)
-                    cv2.putText(frame,answer[2], (answer[3]), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, 1)
+                self.annotations = annotated_image
+                # for answer in annotated_image:
+                #     cv2.rectangle(frame, answer[0], answer[1], (0, 0, 0), 1)
+                #     cv2.putText(frame,answer[2], (answer[3]), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, 1)
 
+    # def ODoneframe(self):
+    #     if self.exchange is not None:
+    #         frame = self.exchange.frame
+    #         frame2 = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    #         img = Image.fromarray(frame2, 'RGB')
+    #         results = self.od_model.predict_image(img)
+    #         annotated_image = self.od_model.draw_results(results, frame)
+    #         for answer in annotated_image:
+    #             print(answer)
+    #             cv2.rectangle(frame, answer[0], answer[1], (0, 0, 0), 1)
+    #             cv2.putText(frame,answer[2], (answer[3]), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, 1)
 
 class VideoStream: 
     """Class for CV2 video capture. The start() method will create a new 
@@ -100,7 +113,7 @@ thread to read the video stream"""
     def __init__(self, src=0):
         self.stream = cv2.VideoCapture(src)
         (self.grabbed, self.frame) = self.stream.read()
-        # self._boxes = None
+        #self._boxes = None
         self.stopped = False
 
     def start(self):
@@ -122,16 +135,19 @@ def main():
     exchange = VideoStream(0).start()
     OD = PerformOD().start()
     OD.set_exchange(exchange)
-
+    #OD = PerformOD()
     while True:  # Begins a loop for the real-time OCR display
         pressed_key = cv2.waitKey(1) & 0xFF
         if pressed_key == ord('q'):
             break
 
         frame = exchange.frame 
-
+        
+        for answer in OD.annotations:
+            cv2.rectangle(frame, answer[0], answer[1], (0, 0, 0), 1)
+            cv2.putText(frame,answer[2], (answer[3]), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, 1)
+        
         cv2.imshow("Video Get Frame", frame)
-
 
 if __name__ == '__main__':
         main()
